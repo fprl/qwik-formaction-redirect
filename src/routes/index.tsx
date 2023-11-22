@@ -1,103 +1,52 @@
 import { component$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { type DocumentHead, routeAction$, Form } from "@builder.io/qwik-city";
 
-import Counter from "~/components/starter/counter/counter";
-import Hero from "~/components/starter/hero/hero";
-import Infobox from "~/components/starter/infobox/infobox";
-import Starter from "~/components/starter/next-steps/next-steps";
+export const useFilters = routeAction$(async (data, req) => {
+  const newQuery = new URLSearchParams();
+  const redirect = data.redirect as "1" | "2";
+
+  delete data.redirect;
+
+  Object.keys(data).forEach(key => {
+    newQuery.set(key, JSON.stringify(data[key]));
+  });
+
+  const redirectTo = {
+    "1": req.url.pathname,
+    "2": "/test",
+  }
+
+  console.log(`Redirecting to ${redirectTo[redirect]}?${newQuery.toString()}`);
+
+  throw req.redirect(302, `${redirectTo[redirect]}?${newQuery.toString()}`);
+});
 
 export default component$(() => {
+  const action = useFilters();
+  const selectOptions = Array.from({ length: 8 }, (_, index) => (index + 1).toString());
+
   return (
-    <>
-      <Hero />
-      <Starter />
+    <Form action={action} class="flex flex-col gap-y-4">
+      <h3 class="text-sm">
+        Select bedrooms
+      </h3>
 
-      <div role="presentation" class="ellipsis"></div>
-      <div role="presentation" class="ellipsis ellipsis-purple"></div>
+      <select name="redirect" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:border-input focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" >
+        <option value="1">Redirect to same page</option>
+        <option value="2">Redirect to test page</option>
+      </select>
 
-      <div class="container container-center container-spacing-xl">
-        <h3>
-          You can <span class="highlight">count</span>
-          <br /> on me
-        </h3>
-        <Counter />
-      </div>
+      <select name="bedrooms" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:border-input focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" >
+        <option value="">--</option>
+        {selectOptions.map((nr) => (
+          <option key={nr} value={nr.toString()}>
+            {`${nr} + `}
+          </option>
+        ))}
+      </select>
 
-      <div class="container container-flex">
-        <Infobox>
-          <div q:slot="title" class="icon icon-cli">
-            CLI Commands
-          </div>
-          <>
-            <p>
-              <code>npm run dev</code>
-              <br />
-              Starts the development server and watches for changes
-            </p>
-            <p>
-              <code>npm run preview</code>
-              <br />
-              Creates production build and starts a server to preview it
-            </p>
-            <p>
-              <code>npm run build</code>
-              <br />
-              Creates production build
-            </p>
-            <p>
-              <code>npm run qwik add</code>
-              <br />
-              Runs the qwik CLI to add integrations
-            </p>
-          </>
-        </Infobox>
-
-        <div>
-          <Infobox>
-            <div q:slot="title" class="icon icon-apps">
-              Example Apps
-            </div>
-            <p>
-              Have a look at the <a href="/demo/flower">Flower App</a> or the{" "}
-              <a href="/demo/todolist">Todo App</a>.
-            </p>
-          </Infobox>
-
-          <Infobox>
-            <div q:slot="title" class="icon icon-community">
-              Community
-            </div>
-            <ul>
-              <li>
-                <span>Questions or just want to say hi? </span>
-                <a href="https://qwik.builder.io/chat" target="_blank">
-                  Chat on discord!
-                </a>
-              </li>
-              <li>
-                <span>Follow </span>
-                <a href="https://twitter.com/QwikDev" target="_blank">
-                  @QwikDev
-                </a>
-                <span> on Twitter</span>
-              </li>
-              <li>
-                <span>Open issues and contribute on </span>
-                <a href="https://github.com/BuilderIO/qwik" target="_blank">
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <span>Watch </span>
-                <a href="https://qwik.builder.io/media/" target="_blank">
-                  Presentations, Podcasts, Videos, etc.
-                </a>
-              </li>
-            </ul>
-          </Infobox>
-        </div>
-      </div>
-    </>
+      <button type="submit">Submit</button>
+    </Form>
   );
 });
 
